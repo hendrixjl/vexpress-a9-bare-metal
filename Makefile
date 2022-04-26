@@ -7,7 +7,7 @@ OBJCOPY = $(ARMGNU)-objcopy
 
 
 AOPS = --warn --fatal-warnings 
-COPS = -Wall -Werror  -nostdlib -nostartfiles -ffreestanding 
+COPS = -nostdlib -nostartfiles -ffreestanding 
 
 
 
