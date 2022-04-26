@@ -7,7 +7,7 @@ OBJCOPY = $(ARMGNU)-objcopy
 
 
 AOPS = --warn --fatal-warnings 
-COPS = -nostdlib -nostartfiles -ffreestanding 
+COPS = -Werror -nostdlib -nostartfiles -ffreestanding 
 
 
 
@@ -26,20 +26,23 @@ startup.o : startup.s
 	$(AS) $(AOPS) $^ -o $@
 
 cstart.o : cstart.c
-	$(CC) -c $(COPS) cstart.c -o $@
+	$(CC) -c $(COPS) $^ -o $@
 
-cenv.elf : startup.o cstart.o
-	$(LD) -T linkscript.ld -o $@ startup.o cstart.o
+sp804.o : sp804.c
+	$(CC) -c $(COPS) $^ -o $@
+
+cenv.elf : startup.o cstart.o sp804.o
+	$(LD) -T linkscript.ld -o $@ $^
 	$(OBJDUMP) -D $@ > cenv.list
 
 cenv.bin : cenv.elf
-	$(OBJCOPY) cenv.elf -O binary $@
+	$(OBJCOPY) $^ -O binary $@
 
 cenv.hex : cenv.elf
-	$(OBJCOPY) cenv.elf -O ihex $@
+	$(OBJCOPY) $^ -O ihex $@
 
 qemu : cenv.bin
-	qemu-system-arm -M vexpress-a9 -m 512M -no-reboot -nographic -monitor telnet:127.0.0.1:1234,server,nowait -kernel cenv.bin -serial mon:stdio
+	qemu-system-arm -M vexpress-a9 -m 512M -no-reboot -nographic -monitor telnet:127.0.0.1:1234,server,nowait -kernel $^ -serial mon:stdio
 
 .PHONY : help
 
