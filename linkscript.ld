@@ -4,8 +4,7 @@ ENTRY(_Reset)
 
 MEMORY
 {
-    ROM (rx) : ORIGIN = 0x60000000, LENGTH = 1M
-    RAM (rwx): ORIGIN = 0x70000000, LENGTH = 32M
+    RAM (rwx): ORIGIN = 0x60010000, LENGTH = 32M
 }
 
 SECTIONS
@@ -14,33 +13,39 @@ SECTIONS
         startup.o (.vector_table)
         *(.text*)
         *(.rodata*)
-     } > ROM
+     } > RAM
     _text_end = .;
     .data : AT(ADDR(.text) + SIZEOF(.text))
     {
         _data_start = .;
         *(.data)
         . = ALIGN(8);
-        _data_end = .;
     } > RAM
+    _data_end = .;
     .bss : {
         _bss_start = .;
         *(.bss)
         . = ALIGN(8);
-        _bss_end = .;
     } > RAM
+    _bss_end = .;
 
-    _fiq_stack_start = ADDR(.bss) + SIZEOF(.bss);
-    _fiq_stack_end = _fiq_stack_start + 0x1000; /* 64 KB */
+    _fiq_stack_buffer = ADDR(.bss) + SIZEOF(.bss);
+    _fiq_stack_start = _fiq_stack_buffer + 0x04;
+    _fiq_stack_end = _fiq_stack_start + 0x020;
 
-    _irq_stack_start = _fiq_stack_end;
-    _irq_stack_end = _irq_stack_start + 0x1000; /* 64 KB */
+    _irq_stack_buffer = _fiq_stack_end;
+    _irq_stack_start = _irq_stack_buffer + 0x04;
+    _irq_stack_end = _irq_stack_start + 0x020;
 
-    _svc_stack_start = _irq_stack_end;
-    _svc_stack_end = _svc_stack_start + 0x1000; /* 64 KB */
+    _svc_stack_buffer = _irq_stack_end;
+    _svc_stack_start = _svc_stack_buffer + 0x04;
+    _svc_stack_end = _svc_stack_start + 0x020;
 
-    _usr_stack_start = _svc_stack_end;
-    _usr_stack_end = _usr_stack_start + 0x1000; /* 64 KB */
+    _usr_stack_buffer = _svc_stack_end;
+    _usr_stack_start = _usr_stack_buffer + 0x04;
+    _usr_stack_end = _usr_stack_start + 0x0200;
+    
+    _last_word_marker = _usr_stack_end + 4;
 
     _irq_stack_size = _irq_stack_end - _irq_stack_start;
     _fiq_stack_size = _fiq_stack_end - _fiq_stack_start;
