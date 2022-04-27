@@ -1,4 +1,5 @@
 /* Some defines */
+.equ MODE_USR, 0x10
 .equ MODE_FIQ, 0x11
 .equ MODE_IRQ, 0x12
 .equ MODE_SVC, 0x13
@@ -42,13 +43,13 @@ irq_loop:
 
     /* Supervisor mode */
     msr cpsr_c, MODE_SVC
-    ldr r1, =_stack_start
-    ldr sp, =_stack_end
+    ldr r1, =_svc_stack_start
+    ldr sp, =_svc_stack_end
 
-stack_loop:
+svc_stack_loop:
     cmp r1, sp
     strlt r0, [r1], #4
-    blt stack_loop
+    blt svc_stack_loop
 
     /* Start copying data */
     ldr r0, =_text_end
@@ -70,6 +71,17 @@ bss_loop:
     cmp r1, r2
     strlt r0, [r1], #4
     blt bss_loop
+    
+    
+    /* User mode */
+    msr cpsr_c, MODE_USR
+    ldr r1, =_usr_stack_start
+    ldr sp, =_usr_stack_end
+
+usr_stack_loop:
+    cmp r1, sp
+    strlt r0, [r1], #4
+    blt usr_stack_loop
 
     ldr r7,str1
     bl main
